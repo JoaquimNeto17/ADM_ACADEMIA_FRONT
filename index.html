@@ -1,0 +1,103 @@
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLACK IRON Gym - Painel Administrativo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo">
+            <span class="logo-icon">BI</span>
+            <span class="logo-text">BLACK IRON</span>
+        </div>
+        <div id="userInfo" class="user-info hidden">
+            <span class="admin-label">ADMIN</span>
+            <button id="btnLogout" class="btn-exit">SAIR</button>
+        </div>
+    </header>
+
+    <main class="content-wrapper">
+        
+        <section id="loginSection" class="login-container">
+            <div class="login-card">
+                <div class="card-header">
+                    <h2>ACESSO <span class="highlight">RESTRITO</span></h2>
+                    <p>IDENTIFIQUE-SE PARA GERENCIAR ATLETAS</p>
+                </div>
+                <form id="loginForm" autocomplete="off">
+                    <div class="input-group">
+                        <input type="text" id="usuario" required placeholder="USUÁRIO" autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="password" required placeholder="SENHA" autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn-primary">ENTRAR NO SISTEMA</button>
+                    <p id="loginError" class="hidden error-msg">Usuário ou senha incorretos!</p>
+                </form>
+            </div>
+        </section>
+
+        <section id="adminSection" class="admin-grid hidden">
+            
+            <aside class="form-container">
+                <h3 id="formTitle">+ NOVO CADASTRO</h3>
+                <form id="alunoForm" autocomplete="off">
+                    <input type="hidden" id="alunoId">
+                    
+                    <div class="field">
+                        <label>NOME COMPLETO</label>
+                        <input type="text" id="nome" required placeholder="Ex: João da Silva" autocomplete="off">
+                    </div>
+
+                    <div class="field">
+                        <label>DOCUMENTO (CPF)</label>
+                        <input type="text" id="cpf" required placeholder="000.000.000-00" maxlength="14" autocomplete="off">
+                    </div>
+
+                    <div class="field">
+                        <label>SITUAÇÃO ATUAL</label>
+                        <select id="status">
+                            <option value="Ativo">Ativo</option>
+                            <option value="Inativo">Inativo</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-save">SALVAR</button>
+                        <button type="button" id="btnCancelar" class="hidden btn-cancel">CANCELAR</button>
+                    </div>
+                </form>
+            </aside>
+
+            <article class="table-container">
+                <div class="table-header">
+                    <div>
+                        <h3>LISTAGEM PRO</h3>
+                        <p>Total: <span id="totalAlunos">0</span> registros</p>
+                    </div>
+                    <button onclick="carregarAlunos()" class="btn-refresh">⟳</button>
+                </div>
+                <div class="table-content">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>DADOS DO ATLETA</th>
+                                <th>CPF</th>
+                                <th>SITUAÇÃO</th>
+                                <th>AÇÕES</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaAlunos">
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
