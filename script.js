@@ -168,6 +168,77 @@ function renderizarTabela() {
     });
 }
 
+// ==================== FUNÇÃO PARA VALIDAR CPF DUPLICADO ====================
+function verificarCPFDuplicado(cpf, idAtual = null) {
+    // Remove máscara do CPF para comparação
+    const cpfLimpo = cpf.replace(/\D/g, '');
+    
+    // Verifica se existe algum aluno com o mesmo CPF
+    return alunos.some(aluno => {
+        // Se estiver editando, ignora o próprio aluno
+        if (idAtual && String(aluno.id) === String(idAtual)) {
+            return false;
+        }
+        // Compara o CPF (removendo máscara do CPF do aluno também)
+        const cpfAlunoLimpo = aluno.cpf.replace(/\D/g, '');
+        return cpfAlunoLimpo === cpfLimpo;
+    });
+}
+
+// ==================== FUNÇÃO PARA EXIBIR MENSAGEM DE ERRO ====================
+function mostrarErroCPF(mensagem) {
+    // Verifica se já existe um elemento de erro
+    let errorElement = document.getElementById('cpfError');
+    
+    if (!errorElement) {
+        // Cria o elemento de erro
+        errorElement = document.createElement('div');
+        errorElement.id = 'cpfError';
+        errorElement.style.cssText = `
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: rgba(220, 53, 69, 0.1);
+            border-radius: 0.375rem;
+            border-left: 3px solid #dc3545;
+        `;
+        
+        // Insere após o campo CPF
+        const cpfField = document.getElementById('cpf');
+        cpfField.parentNode.insertBefore(errorElement, cpfField.nextSibling);
+    }
+    
+    errorElement.textContent = mensagem;
+    errorElement.style.display = 'block';
+    
+    // Adiciona classe de erro ao campo CPF
+    const cpfField = document.getElementById('cpf');
+    cpfField.style.borderColor = '#dc3545';
+    
+    // Remove a mensagem após 4 segundos
+    setTimeout(() => {
+        if (errorElement) {
+            errorElement.style.display = 'none';
+            const cpfField = document.getElementById('cpf');
+            if (cpfField) {
+                cpfField.style.borderColor = '';
+            }
+        }
+    }, 4000);
+}
+
+function limparErroCPF() {
+    const errorElement = document.getElementById('cpfError');
+    if (errorElement) {
+        errorElement.style.display = 'none';
+    }
+    const cpfField = document.getElementById('cpf');
+    if (cpfField) {
+        cpfField.style.borderColor = '';
+    }
+}
+
 // SALVAR (POST / PATCH)
 alunoForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -178,6 +249,9 @@ alunoForm.addEventListener('submit', async (e) => {
         return;
     }
     
+    // Limpa erro anterior
+    limparErroCPF();
+    
     // Valida CPF antes de enviar
     const cpfSemMascara = document.getElementById('cpf').value.replace(/\D/g, '');
     if (cpfSemMascara.length !== 11) {
@@ -186,6 +260,13 @@ alunoForm.addEventListener('submit', async (e) => {
     }
     
     const id = document.getElementById('alunoId').value;
+    
+    // ==================== VALIDAÇÃO DE CPF DUPLICADO ====================
+    if (verificarCPFDuplicado(cpfSemMascara, id)) {
+        mostrarErroCPF("❌ CPF já cadastrado! Este CPF pertence a outro aluno.");
+        return;
+    }
+    
     const alunoData = {
         nome: document.getElementById('nome').value,
         cpf: cpfSemMascara,
@@ -213,11 +294,18 @@ alunoForm.addEventListener('submit', async (e) => {
 
         if (resposta.ok) {
             limparFormulario();
-            carregarAlunos();
+            await carregarAlunos(); // Recarrega a lista para atualizar o cache local
             alert(id ? "Cadastro atualizado com sucesso!" : "Cadastro realizado com sucesso!");
         } else {
             const erro = await resposta.json();
-            alert("Falha ao salvar: " + erro.error);
+            
+            // Verifica se o erro é de CPF duplicado vindo do backend
+            if (erro.error && (erro.error.includes('CPF') || erro.error.includes('cpf'))) {
+                mostrarErroCPF("❌ CPF já cadastrado! Não é possível usar este CPF.");
+            } else {
+                alert("Falha ao salvar: " + erro.error);
+            }
+            
             if (resposta.status === 401) {
                 // Token expirado
                 mostrarLogin();
@@ -243,6 +331,9 @@ function prepararEdicao(id) {
         formTitle.innerHTML = '✏️ ATUALIZAR CADASTRO';
         btnCancelar.classList.remove('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Limpa qualquer erro de CPF que possa existir
+        limparErroCPF();
     }
 }
 
@@ -260,7 +351,7 @@ async function deletarAluno(id) {
             headers: { 'Authorization': `Bearer ${tokenAtual}` }
         });
         if (res.ok) {
-            carregarAlunos();
+            await carregarAlunos();
             alert("Aluno removido com sucesso!");
         } else if (res.status === 401) {
             mostrarLogin();
@@ -278,6 +369,7 @@ function limparFormulario() {
     document.getElementById('cpf').value = '';
     formTitle.innerHTML = '+ NOVO CADASTRO';
     btnCancelar.classList.add('hidden');
+    limparErroCPF(); // Limpa erro ao limpar formulário
 }
 
 function mostrarLogin() {
