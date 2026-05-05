@@ -2,6 +2,8 @@
 
 Sistema web moderno que simula um painel administrativo de academia, com cadastro, listagem e controle de atletas via CPF.
 
+Vercel: https://adm-academia-front.vercel.app/
+
 📌 Sobre o Projeto
 
 O API Academia foi desenvolvido com foco em interface e experiência do usuário, simulando um sistema real de gerenciamento de academias.
